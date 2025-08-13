@@ -1,22 +1,28 @@
-FROM python:3.13
+ARG PYTHON_VERSION=3.12-slim
 
+FROM python:${PYTHON_VERSION}
+
+ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-ENV PIPENV_DONT_LOAD_ENV 1
-ENV APP_HOME=/usr/src/app
 
-RUN apt-get update -y && apt-get install -y wait-for-it build-essential automake pkg-config libtool libyaml-dev libsecp256k1-dev libffi-dev libgmp-dev
-RUN mkdir -p $APP_HOME
-RUN mkdir $APP_HOME/static
-WORKDIR $APP_HOME
-COPY ./Pipfile ./Pipfile
-COPY ./Pipfile.lock ./Pipfile.lock
-COPY ./entrypoint* ./
-RUN chmod a+x ./entrypoint.sh
-RUN pip install --upgrade pip
+# install psycopg2 dependencies.
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /code
+
+WORKDIR /code
+
 RUN pip install pipenv
-RUN pipenv install
-RUN pipenv install gunicorn
-RUN pipenv install psycopg2
+COPY Pipfile Pipfile.lock /code/
+RUN pipenv install --deploy --system
+COPY . /code
 
+ENV SECRET_KEY "U6q2iYYQ1NZ6zAIjRODwJXDJDUO6pa0h4gZIcCFXgCf9xcPzJL"
+RUN python manage.py collectstatic --noinput
 
-CMD ./entrypoint.sh
+EXPOSE 8000
+
+CMD ["gunicorn","--bind",":8000","--workers","2","saas_auth.wsgi"]

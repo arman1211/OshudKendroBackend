@@ -12,6 +12,8 @@ python-decouple = "*"
 django-cors-headers = "*"
 tqdm = "*"
 requests = "*"
+dj-database-url = "*"
+gunicorn = "*"
 
 [dev-packages]
 

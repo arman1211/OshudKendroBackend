@@ -83,7 +83,7 @@ out/
 # Testing
 coverage/
 junit.xml
-
+flyhelp.txt
 # Others
 *.swp
 *.bak
