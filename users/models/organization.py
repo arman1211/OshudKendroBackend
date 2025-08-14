@@ -39,4 +39,4 @@ class Organization(models.Model):
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ["name", "contact_number"]
+    list_display = ["id", "name", "contact_number"]
