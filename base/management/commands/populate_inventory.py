@@ -19,10 +19,12 @@ class Command(BaseCommand):
     This command will:
     1. Select 400 random medicines from the database.
     2. Create an Inventory entry for each medicine for a given Organization.
-    3. Create two distinct Batch entries for each Inventory item with random data.
+    3. Create two distinct Batch entries for each Inventory item.
+    4. Set expiry dates within the next 6 months to simulate near-expiry alerts.
+    5. Set prices based on a per-piece cost between 3 and 50 BDT.
     """
 
-    help = "Populates the inventory with 400 medicines, creating two batches for each."
+    help = "Populates inventory with 400 medicines, with batches expiring in the next 6 months."
 
     def add_arguments(self, parser):
         """
@@ -86,42 +88,43 @@ class Command(BaseCommand):
                 )
                 continue
 
+            # Generate two unique expiry day offsets to ensure batches have different dates
+            expiry_days = random.sample(range(1, 181), 2)
+
             # --- Create the first batch ---
-            batch1_qty = random.randint(20, 150)
-            buy_price1 = Decimal(random.uniform(15.50, 500.00)).quantize(
-                Decimal("0.01")
-            )
+            batch1_qty = random.randint(5, 150)
+            # UPDATED: Price set between 3 and 50
+            buy_price1 = Decimal(random.uniform(3.0, 50.0)).quantize(Decimal("0.01"))
 
             Batch.objects.create(
                 inventory=inventory,
                 buying_price=buy_price1,
                 selling_price=buy_price1
-                + Decimal(random.uniform(5.0, 50.0)).quantize(Decimal("0.01")),
-                batch_number=f"B{random.randint(100000, 999999)}",
+                + Decimal(random.uniform(2.0, 15.0)).quantize(Decimal("0.01")),
+                batch_number="BATCH-A",
                 quantity=batch1_qty,
                 alert_quantity=random.randint(5, 20),
+                # UPDATED: Expiry set to 1-180 days from now
                 expiry_date=datetime.date.today()
-                + datetime.timedelta(
-                    days=random.randint(180, 730)
-                ),  # 6 months to 2 years
+                + datetime.timedelta(days=expiry_days[0]),
             )
 
             # --- Create the second batch ---
-            batch2_qty = random.randint(20, 150)
-            buy_price2 = Decimal(random.uniform(15.50, 500.00)).quantize(
-                Decimal("0.01")
-            )
+            batch2_qty = random.randint(5, 150)
+            # UPDATED: Price set between 3 and 50
+            buy_price2 = Decimal(random.uniform(3.0, 50.0)).quantize(Decimal("0.01"))
 
             Batch.objects.create(
                 inventory=inventory,
                 buying_price=buy_price2,
                 selling_price=buy_price2
-                + Decimal(random.uniform(5.0, 50.0)).quantize(Decimal("0.01")),
-                batch_number=f"B{random.randint(100000, 999999)}",
+                + Decimal(random.uniform(2.0, 15.0)).quantize(Decimal("0.01")),
+                batch_number="BATCH-B",
                 quantity=batch2_qty,
                 alert_quantity=random.randint(5, 20),
+                # UPDATED: Expiry set to 1-180 days from now, different from the first batch
                 expiry_date=datetime.date.today()
-                + datetime.timedelta(days=random.randint(731, 1460)),  # 2 to 4 years
+                + datetime.timedelta(days=expiry_days[1]),
             )
 
             # Update the total quantity in the main inventory record
