@@ -79,6 +79,9 @@ db.sqlite3
 .next/
 out/
 .parcel-cache/
+medex_medicines.csv
+medeasy_products.json
+
 
 # Testing
 coverage/
